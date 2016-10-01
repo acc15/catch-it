@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "module": "system",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "app/catch-it.js",
+        "rootDir": "src",
+        "target": "es5",
+        "sourceMap": true
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "scripts": {
+        "tsc": "tsc",
+        "tsc:w": "tsc -w",
+        "bs": "browser-sync start -s app -s . -f app -f .",
+        "start": "concurrently \"npm run tsc:w\" \"npm run sass:w\" \"npm run bs\""
+    },
+    "devDependencies": {
+        "browser-sync": "2.13.0",
+        "typescript": "1.8.10",
+        "concurrently": "2.2.0"
+    }
+}
