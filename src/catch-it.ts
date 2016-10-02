@@ -10,6 +10,43 @@ class EngineObject {
     }
 
 }
+//
+// class Point {
+//     public x: number;
+//     public y: number;
+//
+//     public add(other: Point): Point {
+//         this.x += other.x;
+//         this.y += other.y;
+//         return this;
+//     }
+// }
+//
+// class Rect extends Point {
+//     public width: number;
+//     public height: number;
+// }
+//
+// class Animation extends EngineObject {
+//
+//     private image: HTMLImageElement;
+//     private bounds: Rect;
+//     private offset: Point;
+//     private fps: number;
+//     private frame: number;
+//
+//     constructor(image: HTMLImageElement, bounds: Rect, offset: Point, fps: number, frame: number = 0) {
+//         this.image = image;
+//         this.bounds = bounds;
+//         this.offset = offset;
+//         this.fps = fps;
+//         this.frame = frame;
+//     }
+//
+//     public process(engine: Engine, delta: number): void {
+//         super.process(engine, delta);
+//     }
+// }
 
 class Scene extends EngineObject {
 
