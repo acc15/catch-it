@@ -40,23 +40,6 @@ class Scene extends EngineObject {
     }
 }
 
-class TestArrow extends EngineObject {
-
-    private x: number = 0;
-
-    process(engine: Engine, delta: number): void {
-        this.x += 10 * delta;
-    }
-
-    render(engine: Engine, ctx: CanvasRenderingContext2D): void {
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(this.x, 100);
-        ctx.stroke();
-    }
-}
-
 class Label extends EngineObject {
 
     private _text: string = "";
