@@ -2,11 +2,16 @@
 class EngineObject {
 
     public live: boolean = true;
+    public engine: Engine = null;
 
-    public process(engine: Engine, delta: number): void {
+    init(engine: Engine): void {
+        this.engine = engine;
     }
 
-    public render(engine: Engine, ctx: CanvasRenderingContext2D): void {
+    process(delta: number): void {
+    }
+
+    render(ctx: CanvasRenderingContext2D): void {
     }
 
 }
@@ -15,16 +20,26 @@ class Scene extends EngineObject {
 
     private children: EngineObject[] = [];
 
-    public add(obj: EngineObject): Scene {
+    add(obj: EngineObject): Scene {
+        if (this.engine) {
+            obj.init(this.engine);
+        }
         this.children.push(obj);
         return this;
     }
 
-    public process(engine: Engine, delta: number): void {
+    init(engine: Engine): void {
+        super.init(engine);
+        for (let obj of this.children) {
+            obj.init(this.engine);
+        }
+    }
+
+    process(delta: number): void {
         let i = 0;
         while (i < this.children.length) {
             var obj = this.children[i];
-            obj.process(engine, delta);
+            obj.process(delta);
             if (!obj.live) {
                 this.children.splice(i, 1);
             } else {
@@ -33,17 +48,19 @@ class Scene extends EngineObject {
         }
     }
 
-    public render(engine: Engine, ctx: CanvasRenderingContext2D): void {
+    render(ctx: CanvasRenderingContext2D): void {
         for (let obj of this.children) {
-            obj.render(engine, ctx);
+            obj.render(ctx);
         }
     }
+
 }
 
 
 class Engine {
 
     public canvas: HTMLCanvasElement;
+
     private context: CanvasRenderingContext2D;
     private prevTime: number = 0;
     private root: EngineObject;
@@ -54,7 +71,13 @@ class Engine {
     }
 
     public handler(h: EngineObject): Engine {
+        if (this.root) {
+            this.root.init(null);
+        }
         this.root = h;
+        if (this.root) {
+            this.root.init(this);
+        }
         return this;
     }
 
@@ -67,13 +90,13 @@ class Engine {
 
     private draw() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.root.render(this, this.context);
+        this.root.render(this.context);
     }
 
     private process(time: number): void {
         let delta: number = time - this.prevTime;
         this.prevTime = time;
-        this.root.process(this, delta);
+        this.root.process(delta);
         this.draw();
         this.start();
     }

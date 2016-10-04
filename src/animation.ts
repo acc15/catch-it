@@ -1,5 +1,5 @@
 
-class Frame {
+class Sprite {
     image: HTMLImageElement;
     bounds: Rect;
 
@@ -16,17 +16,17 @@ class Frame {
     }
 }
 
-interface FrameBundle {
-    getTotalFrames(): number;
-    getFrame(index: number): Frame;
+interface SpriteSheet {
+    getTotalCount(): number;
+    getSprite(index: number): Sprite;
 }
 
-class SpriteSheet implements FrameBundle {
+class GridSpriteSheet implements SpriteSheet {
 
     private image: HTMLImageElement;
     private frameSize: Dimension;
     private sheetBounds: Rect;
-    private totalFrames: number;
+    private totalCount: number;
     private cols: number;
     private rows: number;
 
@@ -36,19 +36,19 @@ class SpriteSheet implements FrameBundle {
         this.sheetBounds = sheetBounds ? sheetBounds : new Rect(0, 0, image.width, image.height);
         this.cols = Math.floor(this.sheetBounds.width / frameSize.width);
         this.rows = Math.floor(this.sheetBounds.height / frameSize.height);
-        this.totalFrames = totalFrames ? totalFrames : this.rows * this.cols;
+        this.totalCount = totalFrames ? totalFrames : this.rows * this.cols;
     }
 
-    getTotalFrames(): number {
-        return this.totalFrames;
+    public getTotalCount(): number {
+        return this.totalCount;
     }
 
-    getFrame(index: number): Frame {
+    public getSprite(index: number): Sprite {
 
         let col = index % this.cols;
         let row = Math.floor(index / this.cols);
 
-        return new Frame(this.image, new Rect(
+        return new Sprite(this.image, new Rect(
                 this.sheetBounds.x + this.frameSize.width * col,
                 this.sheetBounds.y + this.frameSize.height * row,
                 this.frameSize.width,
@@ -95,33 +95,33 @@ namespace FrameDelays {
 
 class Animation {
 
-    private frameIndex: number;
+    private frame: number;
     private timeRemainder: number = 0;
     private frameDelay: number;
     private alignX: number = 0;
     private alignY: number = 0;
-    private bundle: FrameBundle;
+    private sheet: SpriteSheet;
 
     public delay: FrameDelay;
     public sequence: FrameSequence = FrameSequences.forward();
 
-    constructor(bundle: FrameBundle, delay: FrameDelay, initialFrame: number = 0) {
+    constructor(sheet: SpriteSheet, delay: FrameDelay, initialFrame: number = 0) {
         this.delay = delay;
-        this.bundle = bundle;
-        this.frameIndex = initialFrame;
-        this.frameDelay = this.delay(this.frameIndex);
+        this.sheet = sheet;
+        this.frame = initialFrame;
+        this.frameDelay = this.delay(this.frame);
     }
 
-    public set(bundle: FrameBundle, initialFrame: number = 0): Animation {
-        this.bundle = bundle;
+    public set(sheet: SpriteSheet, initialFrame: number = 0): Animation {
+        this.sheet = sheet;
         this.timeRemainder = 0;
-        this.frameIndex = initialFrame;
-        this.frameDelay = this.delay(this.frameIndex);
+        this.frame = initialFrame;
+        this.frameDelay = this.delay(this.frame);
         return this;
     }
 
     public start(): void {
-        this.frameDelay = this.delay(this.frameIndex);
+        this.frameDelay = this.delay(this.frame);
     }
 
     public stop(): void {
@@ -129,21 +129,21 @@ class Animation {
     }
 
     public process(delta: number): void {
-        if (this.frameDelay <= 0 || this.bundle.getTotalFrames() <= 1) {
+        if (this.frameDelay <= 0 || this.sheet.getTotalCount() <= 1) {
             return;
         }
 
         let framesToAdvance = Math.floor(this.timeRemainder / this.frameDelay);
         if (framesToAdvance > 0) {
             this.timeRemainder = this.timeRemainder % this.frameDelay;
-            this.frameIndex = this.sequence(this.frameIndex, framesToAdvance, this.bundle.getTotalFrames());
-            this.frameDelay = this.delay(this.frameIndex);
+            this.frame = this.sequence(this.frame, framesToAdvance, this.sheet.getTotalCount());
+            this.frameDelay = this.delay(this.frame);
         }
         this.timeRemainder += delta;
     }
 
     public draw(ctx: CanvasRenderingContext2D, x: number, y: number) {
-        let frame = this.bundle.getFrame(this.frameIndex);
+        let frame = this.sheet.getSprite(this.frame);
         frame.draw(ctx, x, y, this.alignX, this.alignY);
     }
 
