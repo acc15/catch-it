@@ -1,81 +1,5 @@
 
-class EngineObject {
 
-    public live: boolean = true;
-
-    public process(engine: Engine, delta: number): void {
-    }
-
-    public render(engine: Engine, ctx: CanvasRenderingContext2D): void {
-    }
-
-}
-//
-// class Point {
-//     public x: number;
-//     public y: number;
-//
-//     public add(other: Point): Point {
-//         this.x += other.x;
-//         this.y += other.y;
-//         return this;
-//     }
-// }
-//
-// class Rect extends Point {
-//     public width: number;
-//     public height: number;
-// }
-//
-// class Animation extends EngineObject {
-//
-//     private image: HTMLImageElement;
-//     private bounds: Rect;
-//     private offset: Point;
-//     private fps: number;
-//     private frame: number;
-//
-//     constructor(image: HTMLImageElement, bounds: Rect, offset: Point, fps: number, frame: number = 0) {
-//         this.image = image;
-//         this.bounds = bounds;
-//         this.offset = offset;
-//         this.fps = fps;
-//         this.frame = frame;
-//     }
-//
-//     public process(engine: Engine, delta: number): void {
-//         super.process(engine, delta);
-//     }
-// }
-
-class Scene extends EngineObject {
-
-    private children: EngineObject[] = [];
-
-    public add(obj: EngineObject): Scene {
-        this.children.push(obj);
-        return this;
-    }
-
-    public process(engine: Engine, delta: number): void {
-        let i = 0;
-        while (i < this.children.length) {
-            var obj = this.children[i];
-            obj.process(engine, delta);
-            if (!obj.live) {
-                this.children.splice(i, 1);
-            } else {
-                ++i;
-            }
-        }
-    }
-
-    public render(engine: Engine, ctx: CanvasRenderingContext2D): void {
-        for (let obj of this.children) {
-            obj.render(engine, ctx);
-        }
-    }
-}
 
 class Label extends EngineObject {
 
@@ -110,7 +34,7 @@ class Label extends EngineObject {
 class FpsCounter extends Label {
 
     public process(engine: Engine, delta: number): void {
-        this.text((1 / delta).toFixed(2) + " FPS");
+        this.text((1000 / delta).toFixed(2) + " FPS");
     }
 }
 
@@ -137,45 +61,24 @@ class Hand extends EngineObject {
     }
 }
 
-class Engine {
+class Shit extends EngineObject {
 
-    public canvas: HTMLCanvasElement;
-    private context: CanvasRenderingContext2D;
-    private prevTime: number = 0;
-    private root: EngineObject;
+    private velocity: Point = new Point(0, 0.1);
+    private position: Point = new Point(0, 0);
+    private animation: Animation = new Animation(
+        new SpriteSheet(document.getElementById("blow") as HTMLImageElement, new Dimension(10, 20)),
+        FrameDelays.fps(30)
+    ).align(0.5, 0.5);
 
-    constructor(canvas: HTMLCanvasElement) {
-        this.canvas = canvas;
-        this.context = canvas.getContext("2d");
+    public process(engine: Engine, delta: number): void {
+        this.position.add(this.velocity);
+        this.animation.process(delta);
     }
 
-    public handler(h: EngineObject): Engine {
-        this.root = h;
-        return this;
+    public render(engine: Engine, ctx: CanvasRenderingContext2D): void {
+        this.animation.draw(ctx, this.position.x, this.position.y);
     }
-
-    public start(): void {
-        var engine: Engine = this;
-        window.requestAnimationFrame((time) => {
-            engine.process(time);
-        });
-    }
-
-    private draw() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.root.render(this, this.context);
-    }
-
-    private process(time: number): void {
-        let delta: number = (time - this.prevTime) / 1000;
-        this.prevTime = time;
-        this.root.process(this, delta);
-        this.draw();
-        this.start();
-    }
-
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
 

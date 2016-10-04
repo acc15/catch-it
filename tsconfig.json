@@ -8,5 +8,11 @@
         "rootDir": "src",
         "target": "es5",
         "sourceMap": true
-    }
+    },
+    "files": [
+        "src/geometry.ts",
+        "src/engine.ts",
+        "src/animation.ts",
+        "src/catch-it.ts"
+    ]
 }

@@ -2,7 +2,7 @@
     "scripts": {
         "tsc": "tsc",
         "tsc:w": "tsc -w",
-        "bs": "browser-sync start -s app -f app",
+        "bs": "browser-sync start -s app -f app -s . -f .",
         "start": "concurrently \"npm run tsc:w\" \"npm run bs\""
     },
     "devDependencies": {
