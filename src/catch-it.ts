@@ -78,16 +78,20 @@ class Bird extends EngineObject {
 
     private x: number = 0;
     private y: number = 0;
+    private dropX: number;
+    private shitScene: Scene;
 
     private velocityX: number = 0.2;
-    private velocityY: number = 0;
 
     private animation: Animation = new Animation(
         new GridSpriteSheet(document.getElementById("bird") as HTMLImageElement, new Dimension(181, 169), null, 14),
         FrameDelays.fps(30)
     ).align(0.5, 0.5);
 
-    constructor(height: number, velocity: number) {
+    constructor(shitScene: Scene, drop: number, height: number, velocity: number) {
+        super();
+        this.shitScene = shitScene;
+        this.dropX = drop;
         this.y = height;
         this.velocityX = velocity;
     }
@@ -99,7 +103,10 @@ class Bird extends EngineObject {
 
     process(delta: number): void {
         this.x += this.velocityX * delta;
-        this.y += this.velocityY * delta;
+        if (this.dropX !== null && (this.velocityX > 0 ? this.x - 30 > this.dropX : this.x + 30 < this.dropX)) {
+            this.shitScene.add(new BirdShit(this.dropX, this.y + 40, 0.7));
+            this.dropX = null;
+        }
         this.live = this.velocityX > 0 ? this.x < this.engine.canvas.width + 100 : this.x > -100;
         this.animation.process(delta);
     }
@@ -121,24 +128,32 @@ class Bird extends EngineObject {
 class BirdSpawn extends Scene {
 
     private timeout: number = BirdSpawn.generateSpawnTimeout();
+    private shitScene: Scene;
+
+    constructor(shitScene: Scene) {
+        super();
+        this.shitScene = shitScene;
+    }
 
     process(delta: number): void {
         this.timeout -= delta;
         if (this.timeout < 0) {
-
-            this.add(new Bird(BirdSpawn.generateRange(100, 400), BirdSpawn.generateBirdVelocity()));
+            this.add(new Bird(this.shitScene,
+                BirdSpawn.generateRange(40, this.engine.canvas.width - 40),
+                BirdSpawn.generateRange(100, 400),
+                BirdSpawn.generateBirdVelocity()));
             this.timeout = BirdSpawn.generateSpawnTimeout();
         }
         super.process(delta);
     }
 
     private static generateBirdVelocity(): number {
-        let vel = BirdSpawn.generateRange(0.1, 0.3);
+        let vel = BirdSpawn.generateRange(0.2, 0.5);
         return BirdSpawn.generateBoolean() ? vel : -vel;
     }
 
     private static generateSpawnTimeout(): number {
-        return BirdSpawn.generateRange(500, 2000);
+        return BirdSpawn.generateRange(1000, 3000);
     }
 
     private static generateBoolean() {
@@ -151,15 +166,60 @@ class BirdSpawn extends Scene {
 
 }
 
+class BirdShit extends EngineObject {
+
+    private x: number;
+    private y: number;
+    private velocityY: number;
+
+    constructor(x: number, y: number, velocity: number) {
+        super();
+        this.x = x;
+        this.y = y;
+        this.velocityY = velocity;
+    }
+
+    process(delta: number): void {
+        this.y += this.velocityY * delta;
+        this.live = this.y < this.engine.canvas.height + 50;
+    }
+
+    render(ctx: CanvasRenderingContext2D): void {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(1, 6);
+        ctx.translate(-this.x, -this.y);
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#dddddd";
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(this.x - 1, this.y - 1, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        ctx.restore();
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     let engine: Engine = new Engine(document.getElementById("catch-it") as HTMLCanvasElement);
 
     let hand = new Hand();
+    let shitScene = new Scene();
     let root = new Scene().
         add(new Sky()).
-        add(new BirdSpawn()).
+        add(new BirdSpawn(shitScene)).
         add(hand).
+        add(shitScene).
         add(new FpsCounter().position(10, 30).font("20px Arial"));
 
     document.addEventListener("mousemove", (event) => {
