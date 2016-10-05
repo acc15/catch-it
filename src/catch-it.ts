@@ -39,11 +39,11 @@ class FpsCounter extends Label {
 }
 
 
-interface Physical {
+interface BoundingBox {
     getBoundingBox(): Rect;
 }
 
-class Hand extends EngineObject implements Physical {
+class Hand extends EngineObject implements BoundingBox {
 
     private image: HTMLImageElement;
 
@@ -180,7 +180,7 @@ class BirdSpawn extends Scene {
 
 }
 
-class BirdShit extends EngineObject implements Physical {
+class BirdShit extends EngineObject implements BoundingBox {
 
     private static readonly RADIUS = 6;
     private static readonly Y_SCALE = 6;
@@ -233,27 +233,25 @@ class BirdShit extends EngineObject implements Physical {
     }
 }
 
-class CollisionDetector extends EngineObject {
+class RectCollisionDetector extends EngineObject {
 
-    private p1: Physical;
-    private p2: Physical[];
+    private p1: BoundingBox;
+    private p2: BoundingBox[];
 
-    constructor(p1: Physical, p2: Physical[]) {
+    constructor(p1: BoundingBox, p2: BoundingBox[]) {
         super();
         this.p1 = p1;
         this.p2 = p2;
     }
 
     process(delta: number): void {
-
         let rect1 = this.p1.getBoundingBox();
         for (let obj of this.p2) {
-            let rect2 = (obj as Physical).getBoundingBox();
+            let rect2 = obj.getBoundingBox();
             if (rect1.intersects(rect2)) {
                 (obj as EngineObject).markDead();
             }
         }
-
     }
 }
 
@@ -268,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
         add(new BirdSpawn(shitScene)).
         add(hand).
         add(shitScene).
-        add(new CollisionDetector(hand, shitScene.getChildren() as Physical[])).
+        add(new RectCollisionDetector(hand, shitScene.getChildren() as BoundingBox[])).
         add(new FpsCounter().position(10, 30).font("20px Arial"));
 
     document.addEventListener("mousemove", (event) => {
