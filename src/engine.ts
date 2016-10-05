@@ -1,8 +1,12 @@
 
 class EngineObject {
 
-    public live: boolean = true;
+    public dead: boolean = false;
     public engine: Engine = null;
+
+    markDead(dead: boolean = true) {
+        this.dead |= dead;
+    }
 
     init(engine: Engine): void {
         this.engine = engine;
@@ -20,6 +24,10 @@ class Scene extends EngineObject {
 
     private children: EngineObject[] = [];
 
+    getChildren(): EngineObject[] {
+        return this.children;
+    }
+
     add(obj: EngineObject): Scene {
         if (this.engine) {
             obj.init(this.engine);
@@ -31,7 +39,7 @@ class Scene extends EngineObject {
     init(engine: Engine): void {
         super.init(engine);
         for (let obj of this.children) {
-            obj.init(this.engine);
+            obj.init(engine);
         }
     }
 
@@ -40,7 +48,7 @@ class Scene extends EngineObject {
         while (i < this.children.length) {
             var obj = this.children[i];
             obj.process(delta);
-            if (!obj.live) {
+            if (obj.dead) {
                 this.children.splice(i, 1);
             } else {
                 ++i;
@@ -50,6 +58,9 @@ class Scene extends EngineObject {
 
     render(ctx: CanvasRenderingContext2D): void {
         for (let obj of this.children) {
+            if (obj.dead) {
+                continue;
+            }
             obj.render(ctx);
         }
     }

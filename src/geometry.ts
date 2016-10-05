@@ -43,4 +43,13 @@ class Rect {
         this.height = height;
     }
 
+    intersects(other: Rect): boolean {
+        return Rect.axisIntersects(this.x, this.width, other.x, other.width) &&
+                Rect.axisIntersects(this.y, this.height, other.y, other.height);
+    }
+
+    private static axisIntersects(v1: number, l1: number, v2: number, l2: number) {
+        return Math.max(v1 + l1, v2 + l2) - Math.min(v1, v2) < l1 + l2;
+    }
+
 }

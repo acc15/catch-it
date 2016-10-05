@@ -38,26 +38,40 @@ class FpsCounter extends Label {
     }
 }
 
-class Hand extends EngineObject {
+
+interface Physical {
+    getBoundingBox(): Rect;
+}
+
+class Hand extends EngineObject implements Physical {
 
     private image: HTMLImageElement;
 
+    nextX: number = 0;
     x: number = 0;
+    y: number = 0;
 
     constructor() {
         super();
         this.image = document.getElementById("hand") as HTMLImageElement;
     }
 
+    getBoundingBox(): Rect {
+        return new Rect(this.x - this.image.width / 2, this.y + 20, this.image.width, this.image.height - 20);
+    }
+
+    process(delta: number): void {
+        this.x = this.nextX;
+        this.y = this.engine.canvas.height * 0.75;
+    }
+
     render(ctx: CanvasRenderingContext2D): void {
-        let actualX = this.x - this.image.width / 2;
-        let y = this.engine.canvas.height * 0.75;
+        let drawX = this.x - this.image.width / 2;
+        ctx.drawImage(this.image, drawX, this.y);
 
-        ctx.drawImage(this.image, actualX, y);
-
-        let offset = actualX + this.image.width, width = this.engine.canvas.width - offset;
+        let offset = drawX + this.image.width, width = this.engine.canvas.width - offset;
         if (width > 0) {
-            ctx.drawImage(this.image, this.image.width - 1, 0, 1, this.image.height, offset, y, width, this.image.height);
+            ctx.drawImage(this.image, this.image.width - 1, 0, 1, this.image.height, offset, this.y, width, this.image.height);
         }
     }
 }
@@ -107,8 +121,8 @@ class Bird extends EngineObject {
             this.shitScene.add(new BirdShit(this.dropX, this.y + 40, 0.7));
             this.dropX = null;
         }
-        this.live = this.velocityX > 0 ? this.x < this.engine.canvas.width + 100 : this.x > -100;
         this.animation.process(delta);
+        this.markDead(this.velocityX > 0 ? this.x > this.engine.canvas.width + 100 : this.x < -100);
     }
 
     render(ctx: CanvasRenderingContext2D): void {
@@ -166,7 +180,10 @@ class BirdSpawn extends Scene {
 
 }
 
-class BirdShit extends EngineObject {
+class BirdShit extends EngineObject implements Physical {
+
+    private static readonly RADIUS = 6;
+    private static readonly Y_SCALE = 6;
 
     private x: number;
     private y: number;
@@ -179,15 +196,22 @@ class BirdShit extends EngineObject {
         this.velocityY = velocity;
     }
 
+    getBoundingBox(): Rect {
+        return new Rect(this.x - BirdShit.RADIUS,
+            this.y - BirdShit.RADIUS * BirdShit.Y_SCALE,
+            BirdShit.RADIUS * 2,
+            BirdShit.RADIUS * 2 * BirdShit.Y_SCALE);
+    }
+
     process(delta: number): void {
         this.y += this.velocityY * delta;
-        this.live = this.y < this.engine.canvas.height + 50;
+        this.markDead(this.y > this.engine.canvas.height + 50);
     }
 
     render(ctx: CanvasRenderingContext2D): void {
         ctx.save();
         ctx.translate(this.x, this.y);
-        ctx.scale(1, 6);
+        ctx.scale(1, BirdShit.Y_SCALE);
         ctx.translate(-this.x, -this.y);
 
         ctx.beginPath();
@@ -209,6 +233,30 @@ class BirdShit extends EngineObject {
     }
 }
 
+class CollisionDetector extends EngineObject {
+
+    private p1: Physical;
+    private p2: Physical[];
+
+    constructor(p1: Physical, p2: Physical[]) {
+        super();
+        this.p1 = p1;
+        this.p2 = p2;
+    }
+
+    process(delta: number): void {
+
+        let rect1 = this.p1.getBoundingBox();
+        for (let obj of this.p2) {
+            let rect2 = (obj as Physical).getBoundingBox();
+            if (rect1.intersects(rect2)) {
+                (obj as EngineObject).markDead();
+            }
+        }
+
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     let engine: Engine = new Engine(document.getElementById("catch-it") as HTMLCanvasElement);
@@ -220,10 +268,11 @@ document.addEventListener("DOMContentLoaded", () => {
         add(new BirdSpawn(shitScene)).
         add(hand).
         add(shitScene).
+        add(new CollisionDetector(hand, shitScene.getChildren() as Physical[])).
         add(new FpsCounter().position(10, 30).font("20px Arial"));
 
     document.addEventListener("mousemove", (event) => {
-        hand.x = event.pageX - engine.canvas.offsetLeft;
+        hand.nextX = event.pageX - engine.canvas.offsetLeft;
     });
 
     engine.handler(root).start();
