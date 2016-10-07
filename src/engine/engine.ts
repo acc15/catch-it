@@ -5,7 +5,7 @@ class EngineObject {
     public engine: Engine = null;
 
     markDead(dead: boolean = true) {
-        this.dead |= dead;
+        this.dead = this.dead || dead;
     }
 
     init(engine: Engine): void {

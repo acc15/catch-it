@@ -10,9 +10,15 @@
         "sourceMap": true
     },
     "files": [
-        "src/geometry.ts",
-        "src/engine.ts",
-        "src/animation.ts",
+        "src/engine/geometry.ts",
+        "src/engine/engine.ts",
+        "src/engine/label.ts",
+        "src/engine/animation.ts",
+        "src/engine/collisions.ts",
+        "src/random.ts",
+        "src/game/sky.ts",
+        "src/game/hand.ts",
+        "src/game/birds.ts",
         "src/catch-it.ts"
     ]
 }
