@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
         add(hand).
         add(shitScene).
         add(new RectCollisionDetector(hand, shitScene.getChildren() as PhysicalObject[], (p1, p2) => {
-            scoreValue += 100;
+            scoreValue += 500;
             p2.markDead();
     }   )).
         add(score).

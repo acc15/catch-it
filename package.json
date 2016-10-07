@@ -2,11 +2,11 @@
     "scripts": {
         "tsc": "tsc",
         "tsc:w": "tsc -w",
-        "bs": "browser-sync start -s app -f app -s . -f .",
+        "bs": "browser-sync start -s app -s . -f app",
         "start": "concurrently \"npm run tsc:w\" \"npm run bs\""
     },
     "devDependencies": {
-        "browser-sync": "2.13.0",
+        "browser-sync": "2.17.0",
         "typescript": "2.0.3",
         "concurrently": "2.2.0"
     }
