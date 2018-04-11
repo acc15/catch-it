@@ -67,7 +67,7 @@ class BirdSpawn extends Scene {
                 random.range(40, this.engine.canvas.width - 40),
                 random.range(100, 400),
                 random.biRange(0.2, 0.5)));
-            this.timeout = random.range(1000, 3000);
+            this.timeout = random.range(100, 500);
         }
         this.timeout -= delta;
         super.process(delta);
